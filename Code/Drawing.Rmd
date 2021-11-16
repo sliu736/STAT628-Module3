@@ -1,0 +1,107 @@
+---
+title: "628M3"
+author: "Yifan Du"
+date: "10/28/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+
+library(rjson)
+library(jsonlite)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+```
+
+
+```{r}
+
+words_star_df <- read.csv('words_star.csv')
+words_star_df <- words_star_df[,c(2,3)]
+
+```
+
+
+
+```{r}
+
+noun_words <- c('class','time','staff','membership','equipment','machine','location','trainer','parking','locker','service','shower','money','fee')
+adj_words <- c('great','good','bad','clean','dirty','new','old','nice','free','best','friendly','fun')
+
+```
+
+
+```{r}
+
+counting_by_star <- function(word) {
+  words_star_word <- words_star_df[words_star_df$Word %>% grepl(pattern = word),]
+  count_stars <- words_star_word %>%
+    count(Star)
+  return(count_stars$n)
+}
+
+```
+
+
+```{r}
+
+noun_star_df<-as.data.frame(matrix(nrow=5,ncol=0))
+noun_names<-c()
+
+for (word in noun_words) {
+  count<-counting_by_star(word)
+  count<-count/dim(words_star_df)[1]
+  if (length(count)==5) {
+    noun_star_df<-cbind(noun_star_df,count)
+    noun_names<-cbind(noun_names, word)
+  } else {
+    next
+  }
+}
+
+colnames(noun_star_df)<-noun_names
+```
+
+```{r}
+par(mfrow = c(3,5))
+
+for (i in 1:length(noun_names)) {
+  barplot(noun_star_df[,i], ylab='Word Freq', xlab = 'Stars', main=noun_names[i])
+}
+```
+
+
+
+```{r}
+adj_star_df<-as.data.frame(matrix(nrow=5,ncol=0))
+adj_names<-c()
+
+for (word in adj_words) {
+  count<-counting_by_star(word)
+  count<-count/dim(words_star_df)[1]
+  if (length(count)==5) {
+    adj_star_df<-cbind(adj_star_df,count)
+    adj_names<-cbind(adj_names, word)
+  } else {
+    next
+  }
+}
+
+colnames(adj_star_df)<-adj_names
+```
+
+```{r}
+par(mfrow = c(3,5))
+
+for (i in 1:length(adj_names)) {
+  barplot(adj_star_df[,i], ylab='Word Freq', xlab = 'Stars', main=adj_names[i])
+}
+```
+
+
