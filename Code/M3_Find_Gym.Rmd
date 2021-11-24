@@ -1,0 +1,61 @@
+---
+title: "M3_Find_Gym"
+author: "Shuguang Chen"
+date: "11/22/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(rjson)
+library(jsonlite)
+```
+
+```{r}
+business <- jsonlite::stream_in(file("/Users/chen/Desktop/STAT628/Module3/DataSet/business_Gym.json"))
+```
+
+```{r}
+zip_code <- as.factor(business$postal_code)
+summary(zip_code)
+```
+
+```{r}
+id_cluster <- c()
+id_num <- c()
+
+for (i in 1:2052) {
+  if(zip_code[i] == 78704){
+    id_cluster <- append(id_cluster,business$business_id[i])
+    id_num <- append(id_num,i)
+  }
+  
+}
+```
+
+```{r}
+for (i in 1:2052) {
+  if(business$postal_code[i] == 78704){
+    print(business$city[i])
+    print(business$state[i])
+  }
+  
+}
+#We know that the 29 gyms are all in Austin,Texas
+```
+
+
+```{r}
+id_num <- as.vector(id_num)
+
+business29 <- data.frame()
+
+for (i in id_num) {
+  business29 <- rbind(business29,business[i,])
+}
+
+```
+
