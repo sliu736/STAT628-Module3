@@ -1,0 +1,183 @@
+---
+title: "Non_attri_analyse"
+author: "Yifan Du"
+date: "12/3/2021"
+output: pdf_document
+---
+
+```{r}
+# rm(list = ls())
+
+library(rjson)
+library(jsonlite)
+library(stringr)
+library(rJava)
+
+library(RSentiment)
+library(sentimentr)
+library(SentimentAnalysis)
+library(meanr)
+library(sentometrics)
+
+business_gym <- stream_in(file('business_Gym.json'))
+review_gym <- stream_in(file('review_Gym.json'))
+
+```
+
+
+```{r}
+noun_1 <- c('class')
+noun_2 <- c('trainer', 'instructor', 'teacher', 'coach', 'staff')
+noun_3 <- c('manager', 'employee', 'service')
+noun_4 <- c('equipment', 'machine', 'space', 'treadmill')
+noun_5 <- c('shower', 'towel', 'water', 'bathroom')
+noun_6 <- c('locker', 'facility', 'parking') 
+noun_7 <- c('workout', 'fitness')
+noun_8 <- c('money', 'fee')
+
+
+noun_1_index = grepl(pattern = 'class', review_gym$text)
+
+noun_2_index = grepl(pattern = 'trainer', review_gym$text) | grepl(pattern = 'instructor', review_gym$text) | grepl(pattern = 'teacher', review_gym$text) | grepl(pattern = 'coach', review_gym$text) | grepl(pattern = 'staff', review_gym$text)
+
+noun_3_index = grepl(pattern = 'manager', review_gym$text) | grepl(pattern = 'employee', review_gym$text) | grepl(pattern = 'service', review_gym$text)
+
+noun_4_index = grepl(pattern = 'equipment', review_gym$text) | grepl(pattern = 'machine', review_gym$text) | grepl(pattern = 'space', review_gym$text) | grepl(pattern = 'treadmill', review_gym$text)
+
+noun_5_index = grepl(pattern = 'shower', review_gym$text) | grepl(pattern = 'towel', review_gym$text) | grepl(pattern = 'water', review_gym$text) | grepl(pattern = 'bathroom', review_gym$text)
+
+noun_6_index = grepl(pattern = 'locker', review_gym$text) | grepl(pattern = 'facility', review_gym$text) | grepl(pattern = 'parking', review_gym$text)
+
+noun_8_index = grepl(pattern = 'money', review_gym$text) | grepl(pattern = 'fee', review_gym$text)
+
+review_gym_noun_1 = review_gym[noun_1_index, c(8, 4, 3)]
+review_gym_noun_2 = review_gym[noun_2_index, c(8, 4, 3)]
+review_gym_noun_3 = review_gym[noun_3_index, c(8, 4, 3)]
+review_gym_noun_4 = review_gym[noun_4_index, c(8, 4, 3)]
+review_gym_noun_5 = review_gym[noun_5_index, c(8, 4, 3)]
+review_gym_noun_6 = review_gym[noun_6_index, c(8, 4, 3)]
+review_gym_noun_8 = review_gym[noun_8_index, c(8, 4, 3)]
+
+
+# function to get the sentences containing certain words from a review
+word_sentence_select = function(text_paragraph, word_list) {
+  sentences = strsplit(text_paragraph, '[.!?]')
+  sentences = sentences[[1]]
+  sentences_new = c()
+  for (sentence in sentences) {
+    for (word in word_list) {
+      if ( is.na(str_extract(sentence, word)) != T ) {
+        sentences_new = c(sentences_new, sentence)
+        break
+      }
+    }
+  }
+  return(paste(sentences_new, collapse = '.'))
+}
+
+
+# function to get sentence (containing certain word) list from review list
+get_word_sentences = function(text_list, word_list) {
+  text_list_new = c()
+  for (paragraph in text_list) {
+    text_list_new = c(text_list_new, word_sentence_select(paragraph, word_list))
+  }
+  return(text_list_new)
+}
+
+
+review_gym_noun_1$sentences = get_word_sentences(review_gym_noun_1$text, noun_1)
+review_gym_noun_2$sentences = get_word_sentences(review_gym_noun_2$text, noun_2)
+review_gym_noun_3$sentences = get_word_sentences(review_gym_noun_3$text, noun_3)
+review_gym_noun_4$sentences = get_word_sentences(review_gym_noun_4$text, noun_4)
+review_gym_noun_5$sentences = get_word_sentences(review_gym_noun_5$text, noun_5)
+review_gym_noun_6$sentences = get_word_sentences(review_gym_noun_6$text, noun_6)
+review_gym_noun_8$sentences = get_word_sentences(review_gym_noun_8$text, noun_8)
+
+
+options(java.parameters = '-Xmx8000m' )
+
+
+review_gym_noun_1$senti_score = calculate_score(review_gym_noun_1$sentences)
+write.csv(review_gym_noun_1, 'review_gym_noun_1.csv')
+
+
+review_gym_noun_2$senti_score = calculate_score(review_gym_noun_2$sentences)
+write.csv(review_gym_noun_2, 'review_gym_noun_2.csv')
+
+
+# 
+review_gym_noun_3$senti_score = calculate_score(review_gym_noun_3$sentences)
+write.csv(review_gym_noun_3, 'review_gym_noun_3.csv')
+
+review_gym_noun_5$senti_score = calculate_score(review_gym_noun_5$sentences)
+write.csv(review_gym_noun_5, 'review_gym_noun_5.csv')
+
+review_gym_noun_6$senti_score = calculate_score(review_gym_noun_6$sentences)
+write.csv(review_gym_noun_6, 'review_gym_noun_6.csv')
+
+review_gym_noun_8$senti_score = calculate_score(review_gym_noun_8$sentences)
+write.csv(review_gym_noun_8, 'review_gym_noun_8.csv')
+
+```
+
+```{r}
+review_gym_noun_1 = read.csv('review_gym_noun_1.csv')
+review_gym_noun_1 = review_gym_noun_1[,-1]
+
+review_gym_noun_2 = read.csv('review_gym_noun_2.csv')
+review_gym_noun_2 = review_gym_noun_2[,-1]
+
+review_gym_noun_3 = read.csv('review_gym_noun_3.csv')
+review_gym_noun_3 = review_gym_noun_3[,-1]
+
+review_gym_noun_4 = read.csv('review_gym_noun_4.csv')
+review_gym_noun_4 = review_gym_noun_4[,-1]
+
+review_gym_noun_5 = read.csv('review_gym_noun_5.csv')
+review_gym_noun_5 = review_gym_noun_5[,-1]
+
+review_gym_noun_6 = read.csv('review_gym_noun_6.csv')
+review_gym_noun_6 = review_gym_noun_6[,-1]
+
+review_gym_noun_8 = read.csv('review_gym_noun_8.csv')
+review_gym_noun_8 = review_gym_noun_8[,-1]
+
+
+
+get_senti = function(senti_scores) {
+  sentiment = c()
+  for (sc in senti_scores) {
+    if (sc == 0) {
+      sentiment = c(sentiment, 0)
+    } else if (sc >0) {
+      sentiment = c(sentiment, 1)
+    } else {
+      sentiment = c(sentiment, -1)
+    }
+  }
+  return(sentiment)
+}
+
+
+review_gym_noun_1$sentiment = get_senti(review_gym_noun_1$senti_score)
+review_gym_noun_2$sentiment = get_senti(review_gym_noun_2$senti_score)
+review_gym_noun_3$sentiment = get_senti(review_gym_noun_3$senti_score)
+review_gym_noun_4$sentiment = get_senti(review_gym_noun_4$senti_score)
+review_gym_noun_5$sentiment = get_senti(review_gym_noun_5$senti_score)
+review_gym_noun_6$sentiment = get_senti(review_gym_noun_6$senti_score)
+review_gym_noun_8$sentiment = get_senti(review_gym_noun_8$senti_score)
+
+
+write.csv(review_gym_noun_1, 'review_gym_noun_1_senti.csv')
+write.csv(review_gym_noun_2, 'review_gym_noun_2_senti.csv')
+write.csv(review_gym_noun_3, 'review_gym_noun_3_senti.csv')
+write.csv(review_gym_noun_4, 'review_gym_noun_4_senti.csv')
+write.csv(review_gym_noun_5, 'review_gym_noun_5_senti.csv')
+write.csv(review_gym_noun_6, 'review_gym_noun_6_senti.csv')
+write.csv(review_gym_noun_8, 'review_gym_noun_8_senti.csv')
+
+
+```
+
+

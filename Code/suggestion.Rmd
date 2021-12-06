@@ -1,0 +1,179 @@
+---
+title: "suggestion"
+author: "Yifan Du"
+date: "12/5/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+
+noun_1 <- c('class')
+noun_2 <- c('trainer', 'instructor', 'teacher', 'coach', 'staff')
+noun_3 <- c('manager', 'employee', 'service')
+noun_4 <- c('equipment', 'machine', 'space', 'treadmill')
+noun_5 <- c('shower', 'towel', 'water', 'bathroom')
+noun_6 <- c('locker', 'facility', 'parking') 
+noun_7 <- c('workout', 'fitness')
+noun_8 <- c('money', 'fee')
+
+review_gym <- stream_in(file('review_Gym.json'))
+
+review_gym_noun_1_senti = read.csv('review_gym_noun_1_senti.csv')
+review_gym_noun_1_senti = review_gym_noun_1_senti[,-1]
+
+review_gym_noun_2_senti = read.csv('review_gym_noun_2_senti.csv')
+review_gym_noun_2_senti = review_gym_noun_2_senti[,-1]
+
+review_gym_noun_3_senti = read.csv('review_gym_noun_3_senti.csv')
+review_gym_noun_3_senti = review_gym_noun_3_senti[,-1]
+
+review_gym_noun_4_senti = read.csv('review_gym_noun_4_senti.csv')
+review_gym_noun_4_senti = review_gym_noun_4_senti[,-1]
+
+review_gym_noun_5_senti = read.csv('review_gym_noun_5_senti.csv')
+review_gym_noun_5_senti = review_gym_noun_5_senti[,-1]
+
+review_gym_noun_6_senti = read.csv('review_gym_noun_6_senti.csv')
+review_gym_noun_6_senti = review_gym_noun_6_senti[,-1]
+
+review_gym_noun_8_senti = read.csv('review_gym_noun_8_senti.csv')
+review_gym_noun_8_senti = review_gym_noun_8_senti[,-1]
+
+
+
+senti_noun_1 = mean(review_gym_noun_1_senti$senti_score)
+senti_noun_2 = mean(review_gym_noun_2_senti$senti_score)
+senti_noun_3 = mean(review_gym_noun_3_senti$senti_score)
+senti_noun_4 = mean(review_gym_noun_4_senti$senti_score)
+senti_noun_5 = mean(review_gym_noun_5_senti$senti_score)
+senti_noun_6 = mean(review_gym_noun_6_senti$senti_score)
+senti_noun_8 = mean(review_gym_noun_8_senti$senti_score)
+
+```
+
+
+```{r}
+Suggestions <- data.frame(business_id=0, Pros=0, Cons=0)
+#colnames(Suggestions) <- c('business_id', 'Pros', 'Cons')
+
+
+for (business_id in business_gym$business_id) {
+  
+  Pros = c()
+  Cons = c()
+  
+  if (business_id %in% review_gym_noun_1_senti$business_id) {
+    sentiscore_noun1_mean = sum(review_gym_noun_1_senti$senti_score[which(review_gym_noun_1_senti$business_id == business_id)])
+    if (sentiscore_noun1_mean > senti_noun_1 + 0.3) {
+      sugge_1 = 'You have good classes to take.'
+      Pros = c(Pros, sugge_1)
+    } else if (sentiscore_noun1_mean < senti_noun_1 - 0.3) {
+      sugge_1 = 'Your classes may need to be updated.'
+      Cons = c(Cons, sugge_1)
+    } else {
+      sugge_1 = 'Your classes are on average.'
+      Pros = c(Pros, sugge_1)
+    }
+  }
+  
+  if (business_id %in% review_gym_noun_2_senti$business_id) {
+    sentiscore_noun2_mean = sum(review_gym_noun_2_senti$senti_score[which(review_gym_noun_2_senti$business_id == business_id)])
+    if (sentiscore_noun2_mean > senti_noun_2 + 0.3) {
+      sugge_2 = 'You have perfect trainers and coaches.'
+      Pros = c(Pros, sugge_2)
+    } else if (sentiscore_noun2_mean < senti_noun_1 - 0.3) {
+      sugge_2 = 'Your may need to hire some good coaches.'
+      Cons = c(Cons, sugge_2)
+    } else {
+      sugge_2 = 'Your coaches are on average.'
+      Pros = c(Pros, sugge_2)
+    }
+  }
+  
+  if (business_id %in% review_gym_noun_3_senti$business_id) {
+    sentiscore_noun3_mean = sum(review_gym_noun_3_senti$senti_score[which(review_gym_noun_3_senti$business_id == business_id)])
+    if (sentiscore_noun3_mean > senti_noun_3 + 0.3) {
+      sugge_3 = 'Your managers and service are good.'
+      Pros = c(Pros, sugge_3)
+    } else if (sentiscore_noun3_mean < senti_noun_3 - 0.3) {
+      sugge_3 = 'You need to improve the quality of service.'
+      Cons = c(Cons, sugge_3)
+    } else {
+      sugge_3 = 'Your service are on average.'
+      Pros = c(Pros, sugge_3)
+    }
+  }
+  
+  if (business_id %in% review_gym_noun_4_senti$business_id) {
+    sentiscore_noun4_mean = sum(review_gym_noun_4_senti$senti_score[which(review_gym_noun_4_senti$business_id == business_id)])
+    if (sentiscore_noun4_mean > senti_noun_4 + 0.3) {
+      sugge_4 = 'The equipments are in good condition.'
+      Pros = c(Pros, sugge_4)
+    } else if (sentiscore_noun4_mean < senti_noun_4 - 0.3) {
+      sugge_4 = 'You may need to update your equipments.'
+      Cons = c(Cons, sugge_4)
+    } else {
+      sugge_4 = 'Your equipments are on average.'
+      Pros = c(Pros, sugge_4)
+    }
+  }
+  
+  if (business_id %in% review_gym_noun_5_senti$business_id) {
+    sentiscore_noun5_mean = sum(review_gym_noun_5_senti$senti_score[which(review_gym_noun_5_senti$business_id == business_id)])
+    if (sentiscore_noun5_mean > senti_noun_5 + 0.3) {
+      sugge_5 = 'Customers feels good about the shower here.'
+      Pros = c(Pros, sugge_5)
+    } else if (sentiscore_noun5_mean < senti_noun_5 - 0.3) {
+      sugge_5 = 'The shower condition should be considered.'
+      Cons = c(Cons, sugge_5)
+    } else {
+      sugge_5 = 'You have average shower condition.'
+      Pros = c(Pros, sugge_5)
+    }
+  }
+  
+  if (business_id %in% review_gym_noun_6_senti$business_id) {
+    sentiscore_noun6_mean = sum(review_gym_noun_6_senti$senti_score[which(review_gym_noun_6_senti$business_id == business_id)])
+    if (sentiscore_noun6_mean > senti_noun_6 + 0.3) {
+      sugge_6 = 'You have good facilities.'
+      Pros = c(Pros, sugge_6)
+    } else if (sentiscore_noun6_mean < senti_noun_6 - 0.3) {
+      sugge_6 = 'You may need to update your lockerroom or other facilities.'
+      Cons = c(Cons, sugge_6)
+    } else {
+      sugge_6 = 'Your facilities are on average.'
+      Pros = c(Pros, sugge_6)
+    }
+  }
+  
+  if (business_id %in% review_gym_noun_8_senti$business_id) {
+    sentiscore_noun8_mean = sum(review_gym_noun_8_senti$senti_score[which(review_gym_noun_8_senti$business_id == business_id)])
+    if (sentiscore_noun6_mean > senti_noun_8 + 0.3) {
+      sugge_8 = 'Your prices are very good.'
+      Pros = c(Pros, sugge_8)
+    } else if (sentiscore_noun8_mean < senti_noun_8 - 0.3) {
+      sugge_8 = 'You should consider adjusting your price.'
+      Cons = c(Cons, sugge_8)
+    } else {
+      sugge_8 = 'Your price are on average.'
+      Pros = c(Pros, sugge_8)
+    }
+  }
+  
+  Protext = paste(Pros, collapse = ' ')
+  Context = paste(Cons, collapse = ' ')
+  
+  sugestion = c(business_id, Protext, Context)
+  Suggestions = rbind(Suggestions, sugestion)
+
+}
+Suggestions = Suggestions[-1,]
+
+
+write.csv(Suggestions, 'Non_attri_Comments.csv')
+```
