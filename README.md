@@ -13,6 +13,6 @@ There are four folders providing more details for our main project: Data, Code, 
 
 - `\Image` contains the plots we get through texing processing, variable selecting and statistical analysing.
 
-- `Summary` contains the summary of our results.
+- `\Summary` contains the summary of our results and our presentation report.
 
 - `Readme` 
