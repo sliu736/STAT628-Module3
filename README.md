@@ -16,5 +16,6 @@ There are four folders providing more details for our main project: Data, Code, 
 - `\Summary` contains the summary of our results and our presentation report.
 
 - `\shiny` contains the shiny codes, data set and images used in shiny app
+- link: https://sliu736.shinyapps.io/STAT605/
 
 - `Readme` 
