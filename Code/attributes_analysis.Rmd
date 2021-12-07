@@ -1,0 +1,366 @@
+---
+title: "model"
+author: "Shuguang Chen"
+date: "12/1/2021"
+output: html_document
+---
+
+```{r warning=TRUE}
+library(rjson)
+library(jsonlite)
+library(tidyverse)
+
+business <- jsonlite::stream_in(file("/Users/chen/Desktop/STAT628/Module3/DataSet/business_Gym.json"))
+review <- jsonlite::stream_in(file("/Users/chen/Desktop/STAT628/Module3/DataSet/review_Gym.json"))
+```
+
+```{r}
+opening_hours <- business$hours
+attributes <- business$attributes
+```
+
+```{r}
+table(opening_hours$Monday)
+
+for (i in 1:2052) {
+if(!is.na(opening_hours$Monday[i])){
+if(opening_hours$Monday[i] == "0:0-0:0"){
+business$workday[i] = TRUE
+}else{
+business$workday[i] = FALSE
+}
+}else{
+business$workday[i] = NA
+}
+}
+```
+
+```{r}
+table(opening_hours$Saturday)
+
+for (i in 1:2052) {
+  if(!is.na(opening_hours$Saturday[i])){
+    if(opening_hours$Saturday[i] == "0:0-0:0"){
+      business$Saturday[i] = TRUE
+    }else{
+      business$Saturday[i] = FALSE
+    }
+  }else{
+    business$Saturday[i] = NA
+  }
+}
+```
+
+```{r}
+table(opening_hours$Sunday)
+
+for (i in 1:2052) {
+  if(!is.na(opening_hours$Sunday[i])){
+    if(opening_hours$Sunday[i] == "0:0-0:0"){
+      business$Sunday[i] = TRUE
+    }else{
+      business$Sunday[i] = FALSE
+    }
+  }else{
+    business$Sunday[i] = NA
+  }
+}
+```
+
+```{r}
+
+for (i in 1:2052) {
+  if(!is.na(attributes$BikeParking[i])){
+    if(attributes$BikeParking[i] == "True"){
+      business$Bike[i] = TRUE
+    }else{
+      business$Bike[i] = FALSE
+    }
+  }else{
+    business$Bike[i] = NA
+  }
+}
+```
+
+```{r}
+
+for (i in 1:2052) {
+  if(!is.na(attributes$BusinessParking[i])){
+    if(attributes$BusinessParking[i] == "None" || attributes$BusinessParking[i] == "{'garage': False, 'street': False, 'validated': False, 'lot': False, 'valet': False}"){
+      business$Parking[i] = FALSE
+    }else{
+      business$Parking[i] = TRUE
+    }
+  }else{
+    business$Parking[i] = NA
+  }
+}
+```
+
+```{r}
+#build a model Rating ~ Parking + Bike Parking + 24 Hour(Workday) + 24 Hour(Saturday) + 24 Hour(Sunday)
+
+complex_model <- lm(business$stars ~ state + workday + Saturday + Sunday,
+                    weights = review_count, data = business)
+
+summary(complex_model)
+```
+
+```{r}
+parking_model <- lm(business$stars ~ Parking, weights = review_count, data = business)
+summary(parking_model)
+```
+
+```{r}
+bike_model <- lm(business$stars ~ Bike, weights = review_count, data = business)
+summary(bike_model)
+```
+
+```{r}
+business$WiFi <- attributes$WiFi
+
+wifimodel <- lm(business$stars ~ business$WiFi, weights = review_count, data = business)
+
+summary(wifimodel)
+```
+
+```{r}
+table(business$dog)
+
+business$dog <- attributes$DogsAllowed
+
+dog_model <- lm(business$stars ~ business$dog, weights = business$review_count, data = business)
+
+summary(dog_model)
+```
+
+```{r}
+table(business$Saturday)
+table(business$Sunday)
+for (i in 1:2052) {
+  business$Weekend[i] <- (business$Saturday[i]&&business$Sunday[i])
+}
+
+table(business$Weekend)
+
+weekend_model <- lm(business$stars ~ business$Weekend, weights = business$review_count, data = business)
+
+summary(weekend_model)
+```
+
+```{r warning=TRUE}
+
+new_review <- left_join(x=review,y=business,by="business_id")
+
+for (i in 1:58459) {
+  ss <- strsplit(new_review$date[i],"-")
+  new_review$review_month[i] <- ss[[1]][2]
+  new_review$review_stars[i] <- review$stars[i]
+}
+
+#Trating <- c() #y
+#Tmonth <- c() #x
+
+#for (i in 1:58459) {
+#  if(!is.na(new_review$Parking[i])){
+#    if(new_review$Parking[i]==TRUE){
+#      Trating[i] <- new_review$rating_stars[i]
+#      Tmonth[i] <- new_review$review_month[i]
+#    }
+#  }
+#}
+
+#Frating <- c() #y
+#Fmonth <- c() #x
+
+#for (i in 1:58459) {
+#  if(!is.na(new_review$Parking[i])){
+#    if(new_review$Parking[i]==FALSE){
+#      Frating[i] <- new_review$rating_stars[i]
+#      Fmonth[i] <- new_review$review_month[i]
+#    }
+#  }
+#}
+
+#as.numeric(Tmonth)
+#Tframe <- data.frame(Trating,Tmonth)
+
+#as.numeric(Fmonth)
+#Fframe <- data.frame(Frating,Fmonth)
+
+#Tmean <- tapply(Tframe$Trating, Tframe$Tmonth, mean)
+
+#Tmean <- as.vector(Tmean)
+
+#Fmean <- tapply(Fframe$Frating, Fframe$Fmonth, mean)
+
+#Fmean <- as.vector(Fmean)
+
+#ks.test(Fmean,Tmean)
+```
+
+```{r}
+#For big cities, using Boston to represent them.
+bostonGymId <- c()
+bostonRating <- c()
+bostonParking <- c()
+bostonBike <- c()
+bostonReviewCount <- c()
+
+for (i in 1:2052) {
+  if(business$city[i] == "Boston"){
+    bostonGymId <- append(bostonGymId,business$business_id[i])
+    bostonRating <- append(bostonRating,business$stars[i])
+    bostonParking <- append(bostonParking,business$Parking[i])
+    bostonBike <- append(bostonBike,business$Bike[i])
+    bostonReviewCount <- append(bostonReviewCount,business$review_count[i])
+  }
+}
+boston <- data.frame(bostonGymId,bostonRating,bostonBike,bostonParking,bostonReviewCount)
+
+boston_model <- lm(bostonRating ~ bostonParking + bostonBike, weights = bostonReviewCount, data = boston)
+
+summary(boston_model)
+```
+
+```{r}
+#3 in 1
+bostonGymId <- c()
+bostonRating <- c()
+bostonParking <- c()
+bostonBike <- c()
+bostonReviewCount <- c()
+bostonDog <- c()
+bostonWIFI <- c()
+
+for (i in 1:2052) {
+  if(business$city[i] == "Boston"){
+    bostonGymId <- append(bostonGymId,business$business_id[i])
+    bostonRating <- append(bostonRating,business$stars[i])
+    bostonParking <- append(bostonParking,business$Parking[i])
+    bostonBike <- append(bostonBike,business$Bike[i])
+    bostonReviewCount <- append(bostonReviewCount,business$review_count[i])
+    bostonDog <- append(bostonDog,business$dog[i])
+    bostonWIFI <- append(bostonWIFI,business$WiFi[i])
+  }
+}
+boston <- data.frame(bostonGymId,bostonRating,bostonBike,bostonParking,bostonReviewCount,bostonDog,bostonWIFI)
+
+boston3_model <- lm(bostonRating ~ bostonParking + bostonDog + bostonWIFI, weights = bostonReviewCount, data = boston)
+
+summary(boston3_model)
+```
+
+
+```{r}
+#Use Beaverton to represent the small towns
+#table(business$city)
+
+#towns <- c("Beaverton")
+
+#townGymId <- c()
+#townRating <- c()
+#townParking <- c()
+#townBike <- c()
+#townReviewCount <- c()
+
+#for (i in 1:2052) {
+#  if(business$city[i] %in% towns){
+#    townGymId <- append(townGymId,business$business_id[i])
+#    townRating <- append(townRating,business$stars[i])
+#    townParking <- append(townParking,business$Parking[i])
+#    townBike <- append(townBike,business$Bike[i])
+#    townReviewCount <- append(townReviewCount,business$review_count[i])
+#  }
+#}
+
+#townGym <- data.frame(townGymId,townRating,townBike,townParking,townReviewCount)
+
+#town_model <- lm(townRating ~ townParking + townBike, weights = townReviewCount, data = townGym)
+#summary(town_model)
+```
+
+```{r}
+#Trash
+#table(attributes$BusinessAcceptsCreditCards)
+
+#business$Cards <- attributes$BusinessAcceptsCreditCards
+
+#card_model <- lm(business$stars ~ business$Cards)
+#summary(card_model)
+```
+
+
+```{r}
+#table(business$city)
+
+towns <- c("Allston","Aloha","Altamonte Springs","Apopka","Arlington","Atlants","Beaverton",
+           "Bedford","Bee Cave","Bee Caves","Belmont","Beverly",'Bexley',
+           "Billerica","Boulder","Braintree","Braintree Ma","Brighton","Brookline","Burnaby",
+           "Cambridge","Kissimmee")
+
+
+townGymId <- c()
+townRating <- c()
+townParking <- c()
+townBike <- c()
+townMonth <-c()
+
+for (i in 1:58459) {
+  if(business$city[i] %in% towns){
+    townGymId <- append(townGymId,new_review$business_id[i])
+    townRating <- append(townRating,new_review$review_stars[i])
+    townParking <- append(townParking,new_review$Parking[i])
+    townBike <- append(townBike,new_review$Bike[i])
+    townMonth <- append(townMonth,new_review$review_month[i])
+  }
+}
+
+townGym <- data.frame(townGymId,townRating,townBike,townParking,townMonth)
+
+
+Trating <- c() #y
+Tmonth <- c() #x
+
+for (i in 1:58459) {
+  if(!is.na(townGym$townParking[i])){
+    if(townGym$townParking[i]==TRUE){
+      Trating <- append(Trating,townGym$townRating[i])
+      Tmonth <- append(Tmonth,townGym$townMonth[i])
+    }
+  }
+}
+
+Frating <- c() #y
+Fmonth <- c() #x
+
+for (i in 1:58459) {
+  if(!is.na(townGym$townParking[i])){
+    if(townGym$townParking[i]==FALSE){
+      Frating <- append(Frating,townGym$townRating[i])
+      Fmonth <- append(Fmonth,townGym$townMonth[i])
+    }
+  }
+}
+
+as.numeric(Tmonth)
+Tframe <- data.frame(Trating,Tmonth)
+
+as.numeric(Fmonth)
+Fframe <- data.frame(Frating,Fmonth)
+
+Tmean <- tapply(Tframe$Trating, Tframe$Tmonth, mean)
+
+Tmean <- as.vector(Tmean)
+
+Fmean <- tapply(Fframe$Frating, Fframe$Fmonth, mean)
+
+Fmean <- as.vector(Fmean)
+
+ks.test(Fmean,Tmean)
+
+```
+
+
+
+
