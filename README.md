@@ -11,11 +11,12 @@ There are four folders providing more details for our main project: Data, Code, 
 
 - `\Code` provides R code files for data I/O, data extracting/processing, texing processing, variable selecting, statistical analysing and suggestion output.
 
-- `\Image` contains the plots we get through texing processing, variable selecting and statistical analysing.
+- `\Image` contains the plots we get for texing processing, variable selecting and statistical analysing.
 
-- `\Summary` contains the summary of our results and our presentation report.
+- `\Summary` contains the final report and presentation slides.
 
 - `\shiny` contains the shiny codes, data set and images used in shiny app
+
 - link: https://sliu736.shinyapps.io/STAT605/
 
 - `Readme` 
